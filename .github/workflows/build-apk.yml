@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - name: Restore source
@@ -41,6 +41,7 @@ jobs:
           import java.io.*;
           import java.net.*;
           import java.util.*;
+          @android.annotation.SuppressLint("UnsafeOptInUsageError")
           public class MainActivity extends Activity {
             LinearLayout list; ExoPlayer player; PlayerView video; String current=""; boolean playing=false; int generation=0;
             SharedPreferences prefs(){return getSharedPreferences("miying_prefs",MODE_PRIVATE);}
@@ -82,11 +83,10 @@ jobs:
           for name,text in files.items():
             path=Path(name);path.parent.mkdir(parents=True,exist_ok=True);path.write_text(text,encoding='utf-8')
           PY
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
