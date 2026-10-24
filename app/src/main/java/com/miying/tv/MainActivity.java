@@ -18,16 +18,16 @@ public class MainActivity extends Activity {
   public void onCreate(Bundle b){super.onCreate(b);home();}
   TextView label(String text,int size){TextView t=new TextView(this);t.setText(text);t.setTextSize(size);t.setTextColor(Color.WHITE);t.setPadding(24,12,24,12);return t;}
   Button button(LinearLayout parent,String text,Runnable action){Button b=new Button(this);b.setText(text);b.setAllCaps(false);b.setMinHeight(52);b.setOnFocusChangeListener((v,f)->{v.setScaleX(f?1.02f:1f);v.setScaleY(f?1.02f:1f);});b.setOnClickListener(v->action.run());parent.addView(b);return b;}
-  void home(){playing=false;generation++;LinearLayout root=new LinearLayout(this);root.setOrientation(1);root.setPadding(32,24,32,24);root.setBackgroundColor(Color.rgb(17,23,35));setContentView(root);
+  void home(){playing=false;generation++;LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setPadding(32,24,32,24);root.setBackgroundColor(Color.rgb(17,23,35));setContentView(root);
     root.addView(label("米影 TV · 直播 / 免费授权影视",26));
-    ScrollView scroll=new ScrollView(this);LinearLayout content=new LinearLayout(this);content.setOrientation(1);scroll.addView(content);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
+    ScrollView scroll=new ScrollView(this);LinearLayout content=new LinearLayout(this);content.setOrientation(LinearLayout.VERTICAL);scroll.addView(content);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
     Button first=button(content,"导入直播 / 影片列表（M3U 地址）",()->ask(true));
     button(content,"播放单个视频（MP4 / M3U8 地址）",()->ask(false));
     button(content,"免费影片 · Big Buck Bunny",()->play("https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"));
     content.addView(label("© Blender Foundation · CC BY 3.0；直播需导入有权观看的片源。",14));
     String last=prefs().getString("last_url","");button(content,"继续上次播放",()->play(last)).setEnabled(!last.isEmpty());
     String fav=prefs().getString("favorite_url","");button(content,"播放收藏",()->play(fav)).setEnabled(!fav.isEmpty());
-    content.addView(label("我的频道 / 影片",22));list=new LinearLayout(this);list.setOrientation(1);content.addView(list);
+    content.addView(label("我的频道 / 影片",22));list=new LinearLayout(this);list.setOrientation(LinearLayout.VERTICAL);content.addView(list);
     String saved=prefs().getString("playlist","");if(!saved.isEmpty())load(saved);else list.addView(label("尚无列表，请导入合法公开直播或个人媒体地址。",18));first.requestFocus();
   }
   boolean valid(String u){try{URI x=new URI(u);return x.getHost()!=null && ("https".equalsIgnoreCase(x.getScheme())||"http".equalsIgnoreCase(x.getScheme()));}catch(Exception e){return false;}}
@@ -37,7 +37,7 @@ public class MainActivity extends Activity {
       try(BufferedReader r=new BufferedReader(new InputStreamReader(c.getInputStream(),"UTF-8"))){String line,name="";int chars=0,count=0;while((line=r.readLine())!=null){chars+=line.length();if(chars>1000000||++count>15000)throw new IOException("列表过大");line=line.replace("\uFEFF","").trim();if(line.startsWith("#EXTINF:")){int comma=line.indexOf(',');name=comma>=0?line.substring(comma+1):"未命名";}else if(!line.isEmpty()&&!line.startsWith("#")){String resolved=new URL(c.getURL(),line).toString();if(valid(resolved))rows.add(new String[]{name.isEmpty()?"频道 "+(rows.size()+1):name,resolved});name="";if(rows.size()>=500)break;}}}
     }catch(Exception e){failure=e.getMessage();}finally{if(c!=null)c.disconnect();}final String error=failure;runOnUiThread(()->{if(request!=generation||playing||isFinishing())return;list.removeAllViews();if(error!=null)list.addView(label("加载失败："+error,18));else if(rows.isEmpty())list.addView(label("未找到有效频道。请导入 M3U 列表，M3U8 视频请用单个视频播放。",18));for(String[] row:rows)button(list,row[0],()->play(row[1]));});}).start();}
   void play(String url){if(!valid(url)){toast("无有效地址");return;}release();current=url;playing=true;generation++;prefs().edit().putString("last_url",url).apply();player=new ExoPlayer.Builder(this).build();video=new PlayerView(this);video.setPlayer(player);video.setUseController(true);video.setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING);video.setKeepScreenOn(true);
-    FrameLayout frame=new FrameLayout(this);frame.addView(video,new FrameLayout.LayoutParams(-1,-1));Button star=new Button(this);star.setText("★ 收藏");frame.addView(star,new FrameLayout.LayoutParams(-2,-2,Gravity.TOP|Gravity.RIGHT));star.setOnClickListener(v->{prefs().edit().putString("favorite_url",current).apply();toast("已收藏");});setContentView(frame);video.requestFocus();
+    FrameLayout frame=new FrameLayout(this);frame.addView(video,new FrameLayout.LayoutParams(-1,-1));Button star=new Button(this);star.setText("★ 收藏");frame.addView(star,new FrameLayout.LayoutParams(-2,-2,Gravity.TOP|Gravity.END));star.setOnClickListener(v->{prefs().edit().putString("favorite_url",current).apply();toast("已收藏");});setContentView(frame);video.requestFocus();
     player.addListener(new Player.Listener(){public void onPlayerError(PlaybackException e){new AlertDialog.Builder(MainActivity.this).setTitle("播放失败").setMessage("片源失效、网络受限或格式不支持："+e.getErrorCodeName()).setPositiveButton("重试",(d,w)->play(current)).setNegativeButton("首页",(d,w)->{release();home();}).show();}});
     player.setMediaItem(MediaItem.fromUri(url));player.prepare();long pos=prefs().getLong("pos_"+url,0);if(pos>0)player.seekTo(pos);player.play();
   }
