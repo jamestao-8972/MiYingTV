@@ -1,0 +1,1 @@
+# 米影 TV 0.4Android TV 遥控器播放器，Android 6.0+。支持 HTTP/HTTPS M3U 播放列表、MP4、HLS (M3U8)、收藏和播放进度。方向键导航、确定键选择、菜单显示控制、返回回首页。内置 Big Buck Bunny：© Blender Foundation，CC BY 3.0，https://peach.blender.org/ 。直播及其他影片需导入本人有权观看的地址，不包含付费破解或未经授权的聚合源。JDK17 / Gradle8.7 / SDK35。运行 ./gradlew :app:assembleDebug。Actions 输出已签名的个人测试 APK。目标 Redmi A65 2025 的遥控器、解码和网络仍需实机验证。
